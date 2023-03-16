@@ -89,8 +89,7 @@ const Home = () => {
 
   const payNow = () => {
     togglePay(true);
-    setCards(prev => cards);
-    onClear();
+    setSelectedCards([]);
   };
 
   const addQuantity = (card, shouldAdd = false) => {
