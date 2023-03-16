@@ -3,10 +3,8 @@ import {Image, Pressable, StyleSheet, View} from 'react-native';
 import {Colors, Spacing, Typography} from '../../styles';
 import {DefaultText} from '../text';
 
-const Card = ({card, onSelect}) => {
-  const [isSelected, setIsSelected] = useState(false);
+const Card = ({card, onSelect,isSelected}) => {
   const clickSelect = () => {
-    setIsSelected(!isSelected);
     onSelect(card);
   };
   return (

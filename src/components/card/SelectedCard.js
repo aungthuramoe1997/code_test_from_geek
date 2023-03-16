@@ -5,21 +5,20 @@ import {DefaultText} from '../text';
 import {FontAwesomeIcon, AntDesignIcon} from '../icon/Icon';
 import TEXT from '../../values/Text';
 
-const SelectedCard = ({card, addQuantity,onDelete}) => {
-  const [count, setCount] = useState(1);
+const SelectedCard = ({card, addQuantity, onDelete}) => {
   const countRef = useRef(1);
   const onAdd = () => {
     if (countRef.current < card.set.total) {
-      setCount(prev => prev + 1);
       countRef.current = countRef.current + 1;
+      addQuantity(card, true);
     }
   };
   const onDeleteCard = () => {
     if (countRef.current === 1) {
-        onDelete(card)
+      onDelete(card);
     } else {
       countRef.current = countRef.current - 1;
-      setCount(prev => prev - 1);
+      addQuantity(card, false);
     }
   };
   return (
@@ -41,7 +40,7 @@ const SelectedCard = ({card, addQuantity,onDelete}) => {
         <DefaultText style={{color: '#6A6969'}}>
           {' '}
           <DefaultText style={{color: Colors.red, fontWeight: '700'}}>
-            {card.set.total - count}{' '}
+            {card.set.total - Number(card.number)}{' '}
           </DefaultText>
           cards Left
         </DefaultText>
@@ -57,12 +56,12 @@ const SelectedCard = ({card, addQuantity,onDelete}) => {
             style={{position: 'absolute', top: 4, zIndex: 10, left: 14}}
             onPress={onDeleteCard}>
             <AntDesignIcon
-              name={count === 1 ? 'close' : 'down'}
+              name={Number(card.number) === 1 ? 'close' : 'down'}
               size={12}
-              color={count === 1 ? Colors.red : Colors.blue}
+              color={Number(card.number) === 1 ? Colors.red : Colors.blue}
             />
           </Pressable>
-          <DefaultText>{count}</DefaultText>
+          <DefaultText>{card.number}</DefaultText>
         </View>
         <View>
           <DefaultText style={{fontSize: 10}}>Price</DefaultText>

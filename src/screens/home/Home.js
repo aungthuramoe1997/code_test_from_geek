@@ -12,10 +12,11 @@ import ScreenContainer from '../../components/container/ScreenContainer';
 import Loading from '../../components/loading/Loading';
 import {DefaultText} from '../../components/text';
 import Toolbar from '../../components/toolbar/Toolbar';
-import {Colors, Spacing} from '../../styles';
+import {Colors, Spacing, Typography} from '../../styles';
 import Modal from 'react-native-modal';
 import SelectedCard from '../../components/card/SelectedCard';
 import {API} from '../../api';
+import {AntDesignIcon} from '../../components/icon/Icon';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -29,10 +30,8 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
-  const [total, setTotal] = useState({
-    price: 0,
-    card: 0,
-  });
+  const [isPaid, setIsPaid] = useState(false);
+
   useEffect(() => {
     getCards();
   }, []);
@@ -52,9 +51,7 @@ const Home = () => {
       .finally(() => setIsLoading(false));
   }, [pagination]);
   const toggleModal = visibility => {
-    if (visibility) {
-      setTotal(prev => ({...prev, total: selectedCards.length}));
-    }
+    togglePay(false);
     setModalVisible(visibility);
   };
   const onSelect = card => {
@@ -73,8 +70,44 @@ const Home = () => {
     toggleModal(false);
   };
 
-  const addQuantity = card => {
-    setSelectedCards(prev => [...prev, card]);
+  const calculateTotal = useCallback(
+    isCard => {
+      let totalAmount = 0;
+      let totalCard = 0;
+      selectedCards.forEach(card => {
+        totalCard += Number(card.number);
+        totalAmount += Number(card.number) * card.cardmarket.prices.lowPrice;
+      });
+      return isCard ? totalCard : totalAmount.toFixed(2);
+    },
+    [selectedCards],
+  );
+
+  const togglePay = visibility => {
+    setIsPaid(visibility);
+  };
+
+  const payNow = () => {
+    togglePay(true);
+    setCards(prev => cards);
+    onClear();
+  };
+
+  const addQuantity = (card, shouldAdd = false) => {
+    const updatedCard = selectedCards.map(selectedCard => {
+      if (selectedCard.id === card.id) {
+        return {
+          ...selectedCard,
+          number: shouldAdd
+            ? `${Number(selectedCard.number) + 1}`
+            : `${Number(selectedCard.number) - 1}`,
+        };
+      } else {
+        return selectedCard;
+      }
+    });
+    calculateTotal();
+    setSelectedCards(updatedCard);
   };
 
   const onDeleteCard = card => {
@@ -85,7 +118,10 @@ const Home = () => {
   };
 
   const renderItem = ({item, index}) => {
-    return <Card card={item} onSelect={onSelect} />;
+    const hasSelected = selectedCards.some(
+      selectedCard => selectedCard.id === item.id,
+    );
+    return <Card card={item} onSelect={onSelect} isSelected={hasSelected} />;
   };
   const renderFooter = () => {
     return (
@@ -147,96 +183,135 @@ const Home = () => {
             </DefaultText>
           </View>
         )}
-        <DefaultText style={{color: Colors.white}}>View Card</DefaultText>
+        <AntDesignIcon name={'shoppingcart'} color={Colors.white} size={18} />
+        <DefaultText
+          style={{
+            color: Colors.white,
+            paddingStart: Spacing.spacing4,
+            fontSize: Typography.text12,
+          }}>
+          View cart
+        </DefaultText>
       </Pressable>
       {/* Selectd Card Modal */}
       <Modal isVisible={isModalVisible} deviceWidth={SCREEN_WIDTH}>
-        <View style={{height: '80%', width: '100%', backgroundColor: 'white'}}>
-          <ScrollView>
-            <View style={{flex: 1}}>
-              {selectedCards.map((card, index) => {
-                return (
-                  <SelectedCard
-                    cards={selectedCards}
-                    key={index}
-                    card={card}
-                    addQuantity={addQuantity}
-                    onDelete={onDeleteCard}
-                  />
-                );
-              })}
-            </View>
-          </ScrollView>
-          <View style={{height: 160, backgroundColor: Colors.white}}>
-            <Pressable onPress={onClear}>
-              <DefaultText
-                style={{alignSelf: 'center', textDecorationLine: 'underline'}}>
-                Clear all
-              </DefaultText>
-            </Pressable>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                marginTop: Spacing.spacing10,
-              }}>
-              <DefaultText
-                style={{
-                  width: 100,
-                  fontSize: 16,
-                  textAlign: 'right',
-                  fontWeight: '700',
-                }}>
-                Total cards
-              </DefaultText>
-              <DefaultText
-                style={{
-                  marginStart: 8,
-                  textAlign: 'right',
-                  width: 100,
-                  color: Colors.close,
-                  fontWeight: '700',
-                }}>
-                {total.card}
-              </DefaultText>
-            </View>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                marginTop: Spacing.spacing10,
-              }}>
-              <DefaultText
-                style={{
-                  width: 100,
-                  fontSize: 18,
-                  textAlign: 'right',
-                  color: Colors.black,
-                  fontWeight: '900',
-                }}>
-                Total Price
-              </DefaultText>
-              <DefaultText
-                style={{
-                  marginStart: 8,
-                  textAlign: 'right',
-                  width: 100,
-                  color: Colors.close,
-                  fontWeight: '900',
-                }}>
-                ${total.price}
-              </DefaultText>
-            </View>
-            <Pressable style={styles.payNow}>
-              <DefaultText style={{color: Colors.white}}>Pay Now</DefaultText>
-            </Pressable>
+        {isPaid ? (
+          <View
+            style={{
+              height: '30%',
+              width: '100%',
+              backgroundColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 16,
+            }}>
+            <AntDesignIcon name="checkcircle" color="green" size={80} />
+            <DefaultText style={{marginTop: Spacing.spacing8}}>
+              Payment Success!
+            </DefaultText>
             <Pressable style={styles.close} onPress={() => toggleModal(false)}>
               <DefaultText style={{color: Colors.white}}>x</DefaultText>
             </Pressable>
           </View>
-        </View>
+        ) : (
+          <View
+            style={{
+              height: '80%',
+              width: '100%',
+              backgroundColor: 'white',
+              borderRadius: 16,
+            }}>
+            <ScrollView>
+              <View style={{flex: 1}}>
+                {selectedCards.map((card, index) => {
+                  return (
+                    <SelectedCard
+                      cards={selectedCards}
+                      key={index}
+                      card={card}
+                      addQuantity={addQuantity}
+                      onDelete={onDeleteCard}
+                    />
+                  );
+                })}
+              </View>
+            </ScrollView>
+            <View style={{height: 160, backgroundColor: Colors.white}}>
+              <Pressable onPress={onClear}>
+                <DefaultText
+                  style={{
+                    alignSelf: 'center',
+                    textDecorationLine: 'underline',
+                  }}>
+                  Clear all
+                </DefaultText>
+              </Pressable>
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  marginTop: Spacing.spacing10,
+                }}>
+                <DefaultText
+                  style={{
+                    width: 100,
+                    fontSize: 16,
+                    textAlign: 'right',
+                    fontWeight: '700',
+                  }}>
+                  Total cards
+                </DefaultText>
+                <DefaultText
+                  style={{
+                    marginStart: 8,
+                    textAlign: 'right',
+                    width: 100,
+                    color: Colors.close,
+                    fontWeight: '700',
+                  }}>
+                  {calculateTotal(true)}
+                </DefaultText>
+              </View>
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  marginTop: Spacing.spacing10,
+                }}>
+                <DefaultText
+                  style={{
+                    width: 100,
+                    fontSize: 18,
+                    textAlign: 'right',
+                    color: Colors.black,
+                    fontWeight: '900',
+                  }}>
+                  Total Price
+                </DefaultText>
+                <DefaultText
+                  style={{
+                    marginStart: 8,
+                    textAlign: 'right',
+                    width: 100,
+                    color: Colors.close,
+                    fontWeight: '900',
+                  }}>
+                  ${calculateTotal(false)}
+                </DefaultText>
+              </View>
+              <Pressable style={styles.payNow} onPress={payNow}>
+                <DefaultText style={{color: Colors.white}}>Pay Now</DefaultText>
+              </Pressable>
+              <Pressable
+                style={styles.close}
+                onPress={() => toggleModal(false)}>
+                <DefaultText style={{color: Colors.white}}>x</DefaultText>
+              </Pressable>
+            </View>
+          </View>
+        )}
       </Modal>
     </ScreenContainer>
   );
