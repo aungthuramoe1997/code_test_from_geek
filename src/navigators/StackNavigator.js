@@ -19,7 +19,7 @@ const StackNavigator = () => {
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName={TEXT.navigation.login}
+          initialRouteName={TEXT.navigation.home}
           screenOptions={{headerShown: false}}>
           <Stack.Screen
             name={TEXT.navigation.home}

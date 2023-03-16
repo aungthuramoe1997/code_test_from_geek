@@ -1,5 +1,6 @@
 import React from 'react';
 import {Text, StyleSheet} from 'react-native';
+import {Colors} from '../../styles';
 
 const DefaultText = ({children, style}) => {
   return <Text style={[styles.defaultStyle, style]}>{children}</Text>;
@@ -7,7 +8,7 @@ const DefaultText = ({children, style}) => {
 
 const styles = StyleSheet.create({
   defaultStyle: {
-    fontFamily: 'PlutoSansW04Bold',
+    color: Colors.primaryColor,
   },
 });
 
