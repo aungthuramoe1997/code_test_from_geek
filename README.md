@@ -9,7 +9,7 @@
 
 ## Setup environments
 
-- Git clone 
+- Git clone `https://github.com/aungthuramoe1997/code_test_from_geek.git`
 - go to project root folder and then type `npm install`
 - type  `npm run android` to run application in android emulator
 - type `npm run ios` to run application in ios simulator
